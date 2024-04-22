@@ -49,7 +49,9 @@ type Transformation = Point -> Point
     False
 -}
 inside :: Point -> Region -> Bool
-inside = undefined
+-- inside p r = r p -- varianta 1
+inside = flip($) -- point free
+
 
 {-
     *** TODO ***
