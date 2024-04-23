@@ -144,12 +144,19 @@ rectangle width height p
     False
 -}
 circle :: Float -> Region
+-- circle radius p = 
+--         let x = fst p
+--             y = snd p
+--             in case sqrt(x * x + y * y) <= radius of
+--                 True -> True
+--                 _ -> False
 circle radius p = 
-        let x = fst p
-            y = snd p
-            in case sqrt(x * x + y * y) <= radius of
-                True -> True
-                _ -> False
+    case sqrt(x * x + y * y) <= radius of
+        True -> True
+        _ -> False
+    where
+        x = fst p
+        y = snd p
 
 {-
     *** TODO ***
@@ -200,6 +207,15 @@ circle radius p =
 -}
 plot :: Int -> Int -> Region -> String
 plot width height region = undefined
+    -- intercalate "\n" [concat [if region (x, y) then "*" else "." | x <- [-halfWidthFloat .. halfWidthFloat]] | y <- [halfHeightFloat, halfHeightFloat - 1 .. -halfHeightFloat]]
+    -- where
+    --     halfWidthFloat = fromIntegral (width `div` 2)
+    --     halfHeightFloat = fromIntegral (height `div` 2)
+
+
+    --  p = [p | (abs(fst p)) <= width && (abs(snd p) <= height)]
+    -- lista de puncte
+    -- [p | (abs(fst p)) <= width && (abs(snd p) <= height)] 
 
 {-
     Utilizați această funcție pentru vizualizarea diagramelor,
