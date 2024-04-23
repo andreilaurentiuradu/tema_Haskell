@@ -48,6 +48,7 @@ type Transformation = Point -> Point
     > inside (1, 1) (== (0, 0))
     False
 -}
+-- verifica daca un punct apartine unei regiuni Region(Point) intoarce True daca e
 inside :: Point -> Region -> Bool
 -- inside p r = r p -- varianta 1
 inside = flip($) -- point free
@@ -76,8 +77,12 @@ inside = flip($) -- point free
     > inside (0, 1) $ fromPoints [(0, 0), (1, 1)]  -- echivalentă cu anterioara
     False
 -}
+
+-- transforma din lista de Point in Region
 fromPoints :: [Point] -> Region
-fromPoints = undefined
+-- fromPoints l p = elem p l  -- fara point free
+fromPoints = flip elem -- functiile sunt aplicate in ordinea in care apar, prima fiind flip
+
 
 {-
     *** TODO ***
@@ -101,8 +106,22 @@ fromPoints = undefined
     > rectangle 2 2 (2, 2)  
     False
 -}
-rectangle :: Float -> Float -> Region
-rectangle width height = undefined
+rectangle :: Float -> Float -> Region -- parametru1(Float) parametru2(Float) val_de_return(Region)
+-- cu if clasic
+-- rectangle width height p = if abs(fst p) <= width / 2 && abs(snd p) <= height / 2 
+--                 then True
+--                 else False 
+
+-- cu case
+-- rectangle width height p = case abs(fst p) <= width / 2 && abs(snd p) <= height / 2 of
+--     True -> True
+--     _ -> False
+
+-- cu garzi
+rectangle width height p 
+    | abs(fst p) <= width / 2 && abs(snd p) <= height / 2 = True
+    | otherwise = False 
+
 
 {-
     *** TODO ***
@@ -125,7 +144,12 @@ rectangle width height = undefined
     False
 -}
 circle :: Float -> Region
-circle radius = undefined
+circle radius p = 
+        let x = fst p
+            y = snd p
+            in case sqrt(x * x + y * y) <= radius of
+                True -> True
+                _ -> False
 
 {-
     *** TODO ***
