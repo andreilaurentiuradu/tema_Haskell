@@ -258,7 +258,7 @@ promoteUnary = (.)
 
 -- aplicam functia f pe parametrii
 promoteBinary :: (a -> b -> c) -> Pointed a -> Pointed b -> Pointed c
-promoteBinary f pointed1 pointed2 = \point -> f (pointed1 point) (pointed2 point)
+promoteBinary f pointed1 pointed2 point = f (pointed1 point) (pointed2 point)
 
 
 {-
@@ -370,11 +370,10 @@ scaling factor = \(x, y) -> (x / factor, y / factor)
 applyTransformation :: Transformation -> Region -> Region
 -- nu e point-free
 -- applyTransformation transformation region = \point -> region (transformation point)
-applyTransformation transformation region = \point -> region (transformation point)
-
-
-
-
+-- aproape point-free
+-- applyTransformation transformation = \region -> \point -> region (transformation point)
+-- inversam argumentele functiei
+applyTransformation = flip(.)
 {-
     *** TODO ***
 
