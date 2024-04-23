@@ -206,16 +206,13 @@ circle radius p =
     ..*..
 -}
 plot :: Int -> Int -> Region -> String
-plot width height region = undefined
-    -- intercalate "\n" [concat [if region (x, y) then "*" else "." | x <- [-halfWidthFloat .. halfWidthFloat]] | y <- [halfHeightFloat, halfHeightFloat - 1 .. -halfHeightFloat]]
-    -- where
-    --     halfWidthFloat = fromIntegral (width `div` 2)
-    --     halfHeightFloat = fromIntegral (height `div` 2)
+plot width height region =
+    intercalate "\n" [concat [case region (fromIntegral x, fromIntegral y) of 
+        True -> "*"  
+        False -> "."
+        | x <- [-width .. width]] | y <- [height, height - 1 .. -height]]
 
 
-    --  p = [p | (abs(fst p)) <= width && (abs(snd p) <= height)]
-    -- lista de puncte
-    -- [p | (abs(fst p)) <= width && (abs(snd p) <= height)] 
 
 {-
     Utilizați această funcție pentru vizualizarea diagramelor,
@@ -248,10 +245,11 @@ printPlot width height region = putStrLn $ plot width height region
     5.0
 -}
 promoteUnary :: (a -> b) -> Pointed a -> Pointed b
-promoteUnary = undefined
+promoteUnary f = (f .)
 
 promoteBinary :: (a -> b -> c) -> Pointed a -> Pointed b -> Pointed c
-promoteBinary f pointed1 pointed2 point = undefined
+promoteBinary f pointed1 pointed2 = \point -> f (pointed1 point) (pointed2 point)
+
 
 {-
     *** TODO ***
@@ -286,13 +284,13 @@ promoteBinary f pointed1 pointed2 point = undefined
     .....
 -}
 complement :: Region -> Region
-complement = undefined
+complement = promoteUnary not
 
 union :: Region -> Region -> Region
-union = undefined
+union = promoteBinary (||)
 
 intersection :: Region -> Region -> Region
-intersection = undefined
+intersection = promoteBinary (&&)
 
 {-
     *** TODO ***
@@ -312,8 +310,7 @@ intersection = undefined
     (0.0,0.0)
 -}
 translation :: Float -> Float -> Transformation
-translation tx ty = undefined
-
+translation tx ty = \(x, y) -> (x - tx, y - ty)
 {-
     *** TODO ***
 
@@ -327,7 +324,8 @@ translation tx ty = undefined
     (1.0,1.0)
 -}
 scaling :: Float -> Transformation
-scaling factor = undefined
+scaling = undefined
+
 
 {-
     *** TODO ***
@@ -354,7 +352,10 @@ scaling factor = undefined
     .....
 -}
 applyTransformation :: Transformation -> Region -> Region
-applyTransformation = undefined
+applyTransformation transformation region = \point -> region (transformation point)
+
+
+
 
 {-
     *** TODO ***
