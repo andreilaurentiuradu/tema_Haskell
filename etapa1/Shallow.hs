@@ -324,7 +324,7 @@ translation tx ty = \(x, y) -> (x - tx, y - ty)
     (1.0,1.0)
 -}
 scaling :: Float -> Transformation
-scaling = undefined
+scaling factor = \(x, y) -> (x / factor, y / factor)
 
 
 {-
@@ -383,7 +383,9 @@ applyTransformation transformation region = \point -> region (transformation poi
         applyTransformation (scaling 0.5) (circle 2)
 -}
 combineTransformations :: [Transformation] -> Transformation
-combineTransformations = undefined
+combineTransformations = foldl (flip (.)) id
+
+
 
 {-
     *** TODO ***
