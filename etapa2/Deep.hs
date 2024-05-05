@@ -103,7 +103,9 @@ applyTransformation transformation region = Transform transformation region
     prefixate, e.g. S.translation, sunt cele din modulul Shallow.
 -}
 toTransformation :: TransformationAST -> Transformation
-toTransformation transformation = undefined
+toTransformation (Translation x y) = S.translation x y 
+toTransformation (Scaling x) = S.scaling x 
+toTransformation (Combine transformations) = S.combineTransformations (map toTransformation transformations) 
 
 {-
     *** TODO ***
@@ -114,7 +116,13 @@ toTransformation transformation = undefined
     Region = (Point -> Bool).
 -}
 toRegion :: RegionAST -> Region
-toRegion region = undefined
+toRegion (FromPoints points) = S.fromPoints points
+toRegion (Rectangle x y) = S.rectangle x y
+toRegion (Circle x) = S.circle x
+toRegion (Complement region) = S.complement (toRegion region)
+toRegion (Union reg_a reg_b) = S.union (toRegion reg_a) (toRegion reg_b)
+toRegion (Intersection reg_a reg_b) = S.intersection (toRegion reg_a) (toRegion reg_b)
+toRegion (Transform transformation region) = S.applyTransformation (toTransformation transformation) (toRegion region)
 
 {-
     Varianta actualizată a a funcției inside.
@@ -152,7 +160,9 @@ inside = flip toRegion
     [Translation 1.0 2.0,Translation 3.0 4.0,Scaling 2.0,Scaling 3.0]
 -}
 decomposeTransformation :: TransformationAST -> [TransformationAST]
-decomposeTransformation transformation = undefined
+decomposeTransformation (Translation x y) = [Translation x y]
+decomposeTransformation (Scaling x) = [Scaling x]
+decomposeTransformation (Combine transformations) = concatMap decomposeTransformation transformations
 
 {-
     *** TODO ***
@@ -177,8 +187,26 @@ decomposeTransformation transformation = undefined
     [Translation 4.0 6.0,Scaling 6.0,Translation 5.0 6.0]
 -}
 fuseTransformations :: [TransformationAST] -> [TransformationAST]
-fuseTransformations = undefined
+-- folosim pattern matching pentru cazurile 
+-- transformarea nula
+fuseTransformations [] = [] 
+-- o singura transformare
+fuseTransformations [transformation] = [transformation]
+-- mai multe transformari pe care le luam in functie de constructor
+fuseTransformations (t1:t2:ts) = case (t1, t2) of
+    (Translation x1 y1, Translation x2 y2) 
+                -> fuseTransformations (Translation (x1 + x2) (y1 + y2) : ts)
+    (Scaling x1, Scaling x2)
+                -> fuseTransformations (Scaling (x1 * x2) : ts)
+    -- daca sunt 2 diferite t1 ramane la fel
+    _ -> t1 :fuseTransformations (t2 : ts)
 
+
+    -- data TransformationAST
+    -- = Translation Float Float
+    -- | Scaling Float
+    -- | Combine [TransformationAST]
+    -- deriving (Show, Eq)
 {-
     *** TODO ***
 

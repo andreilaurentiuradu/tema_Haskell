@@ -48,8 +48,11 @@ type Transformation = Point -> Point
     > inside (1, 1) (== (0, 0))
     False
 -}
+-- verifica daca un punct apartine unei regiuni Region(Point) intoarce True daca e
 inside :: Point -> Region -> Bool
-inside = undefined
+-- inside p r = r p -- varianta 1 fara point-free
+inside = flip($) -- point free (da flip la argumente pentru a aplica region pe punct)
+
 
 {-
     *** TODO ***
@@ -74,8 +77,12 @@ inside = undefined
     > inside (0, 1) $ fromPoints [(0, 0), (1, 1)]  -- echivalentă cu anterioara
     False
 -}
+
+-- transforma din lista de Point in Region
 fromPoints :: [Point] -> Region
-fromPoints = undefined
+-- fromPoints l p = elem p l  -- fara point-free
+fromPoints = flip elem -- functiile sunt aplicate in ordinea in care apar, prima fiind flip
+
 
 {-
     *** TODO ***
@@ -99,8 +106,19 @@ fromPoints = undefined
     > rectangle 2 2 (2, 2)  
     False
 -}
-rectangle :: Float -> Float -> Region
-rectangle width height = undefined
+rectangle :: Float -> Float -> Region 
+-- parametru1(Float) parametru2(Float) val_de_return(Region)
+-- daca punctul apartine unui dreptunghi cu centrul in O(0, 0)
+-- cu garzi
+rectangle width height p 
+    | abs(fst p) <= width / 2 && abs(snd p) <= height / 2 = True
+    | otherwise = False 
+
+-- cu case
+-- rectangle width height p = case abs(fst p) <= width / 2 && abs(snd p) <= height / 2 of
+--     True -> True
+--     _ -> False
+
 
 {-
     *** TODO ***
@@ -123,8 +141,21 @@ rectangle width height = undefined
     False
 -}
 circle :: Float -> Region
-circle radius = undefined
 
+circle radius p = 
+    case sqrt(x * x + y * y) <= radius of
+        True -> True
+        _ -> False
+    where
+        x = fst p
+        y = snd p
+-- cu let
+-- circle radius p = 
+--         let x = fst p
+--             y = snd p
+--             in case sqrt(x * x + y * y) <= radius of
+--                 True -> True
+--                 _ -> False
 {-
     *** TODO ***
 
@@ -173,7 +204,19 @@ circle radius = undefined
     ..*..
 -}
 plot :: Int -> Int -> Region -> String
-plot width height region = undefined
+
+-- caseul intoarce * sau . pentru fiecare punct
+-- concat face lista din x current si toate valorile lui y 
+-- face asta pentru fiecare valoare a lui x deci avem lista de liste
+-- intercalate adauga \n intre liste
+plot width height region =
+    intercalate "\n" 
+        [concat [case region (fromIntegral x, fromIntegral y) of 
+                        True -> "*"  
+                        False -> "."
+                | x <- [-width .. width]] 
+        | y <- [height, height - 1 .. -height]]
+
 
 {-
     Utilizați această funcție pentru vizualizarea diagramelor,
@@ -206,10 +249,17 @@ printPlot width height region = putStrLn $ plot width height region
     5.0
 -}
 promoteUnary :: (a -> b) -> Pointed a -> Pointed b
-promoteUnary = undefined
 
+-- nu e point-free
+-- promoteUnary f = (f .)
+
+-- point-free f(g(x))
+promoteUnary = (.)
+
+-- aplicam functia f pe parametrii
 promoteBinary :: (a -> b -> c) -> Pointed a -> Pointed b -> Pointed c
-promoteBinary f pointed1 pointed2 point = undefined
+promoteBinary f pointed1 pointed2 point = f (pointed1 point) (pointed2 point)
+
 
 {-
     *** TODO ***
@@ -243,14 +293,16 @@ promoteBinary f pointed1 pointed2 point = undefined
     .....
     .....
 -}
+
+-- aplicam functiile in ordinea in care apar
 complement :: Region -> Region
-complement = undefined
+complement = promoteUnary not
 
 union :: Region -> Region -> Region
-union = undefined
+union = promoteBinary (||)
 
 intersection :: Region -> Region -> Region
-intersection = undefined
+intersection = promoteBinary (&&)
 
 {-
     *** TODO ***
@@ -269,9 +321,10 @@ intersection = undefined
     > translation 1 2 (1, 2)
     (0.0,0.0)
 -}
+-- din perechea (x, y) ajungem prin translatie folosind functia anonima in
+-- (x - tx, y - ty)
 translation :: Float -> Float -> Transformation
-translation tx ty = undefined
-
+translation tx ty = \(x, y) -> (x - tx, y - ty)
 {-
     *** TODO ***
 
@@ -284,8 +337,11 @@ translation tx ty = undefined
     > scaling 2 (2, 2)
     (1.0,1.0)
 -}
+
+-- analog functie anonima pentru scalare
 scaling :: Float -> Transformation
-scaling factor = undefined
+scaling factor = \(x, y) -> (x / factor, y / factor)
+
 
 {-
     *** TODO ***
@@ -312,8 +368,12 @@ scaling factor = undefined
     .....
 -}
 applyTransformation :: Transformation -> Region -> Region
-applyTransformation = undefined
-
+-- nu e point-free
+-- applyTransformation transformation region = \point -> region (transformation point)
+-- aproape point-free
+-- applyTransformation transformation = \region -> \point -> region (transformation point)
+-- inversam argumentele functiei
+applyTransformation = flip(.)
 {-
     *** TODO ***
 
@@ -340,7 +400,9 @@ applyTransformation = undefined
         applyTransformation (scaling 0.5) (circle 2)
 -}
 combineTransformations :: [Transformation] -> Transformation
-combineTransformations = undefined
+combineTransformations = foldl (flip (.)) id
+
+
 
 {-
     *** TODO ***
@@ -425,7 +487,6 @@ infiniteCircles = union (circle 2)
 -}
 bfs :: (Ord a) => a -> (a -> [a]) -> [(a, Int)]
 bfs start expand = undefined
-
 {-
     *** TODO BONUS ***
 
