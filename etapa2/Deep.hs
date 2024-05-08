@@ -1,5 +1,5 @@
 module Deep where
-
+import Data.List (group)
 import Shallow (Point, Region, Transformation)
 import qualified Shallow as S
 
@@ -187,26 +187,21 @@ decomposeTransformation (Combine transformations) = concatMap decomposeTransform
     [Translation 4.0 6.0,Scaling 6.0,Translation 5.0 6.0]
 -}
 fuseTransformations :: [TransformationAST] -> [TransformationAST]
--- folosim pattern matching pentru cazurile 
--- transformarea nula
-fuseTransformations [] = [] 
--- o singura transformare
-fuseTransformations [transformation] = [transformation]
--- mai multe transformari pe care le luam in functie de constructor
-fuseTransformations (t1:t2:ts) = case (t1, t2) of
-    (Translation x1 y1, Translation x2 y2) 
-                -> fuseTransformations (Translation (x1 + x2) (y1 + y2) : ts)
-    (Scaling x1, Scaling x2)
-                -> fuseTransformations (Scaling (x1 * x2) : ts)
-    -- daca sunt 2 diferite t1 ramane la fel
-    _ -> t1 :fuseTransformations (t2 : ts)
+fuseTransformations = foldr fuse []
+  where
+    -- cream o noua functie pe care o va aplica foldr
+    fuse :: TransformationAST -> [TransformationAST] -> [TransformationAST]
+    -- cazul concatenare cu ceva null
+    fuse t [] = [t]
+    -- 2 translatii
+    fuse (Translation x1 y1) ((Translation x2 y2) : ts) =
+        Translation (x1 + x2) (y1 + y2) : ts
+    -- 2 scalari
+    fuse (Scaling x1) ((Scaling x2) : ts) =
+        Scaling (x1 * x2) : ts
+    -- altceva
+    fuse t ts = t : ts
 
-
-    -- data TransformationAST
-    -- = Translation Float Float
-    -- | Scaling Float
-    -- | Combine [TransformationAST]
-    -- deriving (Show, Eq)
 {-
     *** TODO ***
 
